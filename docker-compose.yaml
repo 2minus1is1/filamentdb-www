@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  node:
+    container_name: ${SERVICE_NAME}
+    restart: always
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    image: 2minus1is1/node-22alpine-express-pg:latest
+    volumes:
+      - /docker-data/filamentdb-www:/home/node/app
+    hostname: filament
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.${SERVICE_NAME}-http.entrypoints=web"
+      - "traefik.http.routers.${SERVICE_NAME}-http.rule=Host(`${DOMAIN_HOST}`)"
+      - "traefik.http.routers.${SERVICE_NAME}-http.middlewares=${SERVICE_NAME}-https"
+      - "traefik.http.middlewares.${SERVICE_NAME}-https.redirectscheme.scheme=https"
+      
+      - "traefik.http.routers.${SERVICE_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${DOMAIN_HOST}`)"
+      - "traefik.http.routers.${SERVICE_NAME}.tls=true"
+      - "traefik.http.routers.${SERVICE_NAME}.tls.certresolver=production-mittelerde"
+      - "traefik.http.routers.${SERVICE_NAME}.service=${SERVICE_NAME}"
+      - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=${PORT}"
+      - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.url=${IP}"
+
+      - "traefik.http.routers.${SERVICE_NAME}.middlewares=${WHITELIST_IP}@file"
+      #- "traefik.http.routers.${SERVICE_NAME}.middlewares=geoblock-AT-DE-CZ@file"
+    networks:
+      vlan-50-docker:
+        ipv4_address: 10.50.1.4
+networks:
+  vlan-50-docker:
+    external: true
