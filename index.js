@@ -60,6 +60,10 @@ function getTotalWeightNew(totalWeightNew) {
     return totalWeightNew ? `${totalWeightNew} g` : '';
 }
 
+function getPicture(picture) {
+    return `🖼️`;
+}
+
 function getInformation(information) {
     return information ? `<a href="${information}" target="_blank" style="color: white; font-weight: 700; text-decoration: none;">&#9432;</a>` : '';
 }
@@ -143,7 +147,7 @@ app.get('/', async (req, res) => {
             <script type="text/javascript" src="www-files/sort.js"></script>
             <script>
             $(document).ready(function(){
-            $("#tablefilament td").not(".infocell").click(function(){
+            $(".picturecell").not(".infocell").click(function(){
                 $("#popup").hide();
                 $("#popup img:last-child").remove();
                 //$(this).closest("tr").next("tr.picture").toggle();
@@ -161,7 +165,7 @@ app.get('/', async (req, res) => {
             <body>
             <table id='mytable' class='center'>
             <tr style='cursor: default;'>
-            <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th>
+            <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th><th>&nbsp;</th>
             </tr>
             <tbody id='tablefilament'>`;
 
@@ -174,11 +178,12 @@ app.get('/', async (req, res) => {
                 const classIfEmpty = getIfEmpty(ro.weight, ro.used);
                 const inventNumber = getInventNumber(ro.name);
                 const totalWeightNew = getTotalWeightNew(ro.total_weight_new);
+                const picture = getPicture(ro.picture);
                 const information = getInformation(ro.information);
                 const pricePerGram = getPricePerGram(ro.cost, ro.weight);
 
                 htmlOutput += `
-                <tr style="border-top: 1px solid #383838; cursor: pointer;" id="${inventNumber}" class="${classIfEmpty}">
+                <tr style="border-top: 1px solid #383838;" id="${inventNumber}" class="${classIfEmpty}">
                     <td align='left' style='background-color: ${ro.color};'>${getIfEmptyX(ro.weight, ro.used)}</td>
                     <td align='left'>${ro.name}</td>
                     <td align='left'>${vendor}</td>
@@ -188,7 +193,8 @@ app.get('/', async (req, res) => {
                     <td align='right' class='${warningClass}'>${percentageUsed} %<br>${Math.round(ro.used)} g</td>
                     <td align='center'>${ro.weight} g</td>
                     <td align='center'>${totalWeightNew}</td>
-                    <td align='center' class='infocell'>${information}</td>
+                    <td align='center' class='picturecell' style='cursor: pointer;'>${picture}</td>
+                    <td align='center' class='infocell' style='cursor: pointer;'>${information}</td>
                 </tr>`;
             }
 
@@ -205,7 +211,7 @@ app.get('/', async (req, res) => {
         }
 });
 
-const PORT = 80;
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
