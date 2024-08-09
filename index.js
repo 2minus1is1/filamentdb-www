@@ -97,6 +97,7 @@ app.get('/', async (req, res) => {
             <link rel="mask-icon" href="www-files/safari-pinned-tab.svg" color="#5bbad5">
             <meta name="msapplication-TileColor" content="#da532c">
             <meta name="theme-color" content="#ffffff">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet">
@@ -142,6 +143,42 @@ app.get('/', async (req, res) => {
                 text-decoration-thickness: 15%;*/
                 background-color:#cc3300;
             }
+            #editview {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+
+            .editview-content {
+                background-color: #2c2c2c;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                width: 80%;
+                max-width: 400px;
+            }
+
+            .close-btn {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .close-btn:hover,
+            .close-btn:focus {
+                color: #fff;
+                text-decoration: none;
+                cursor: pointer;
+            }
             </style>
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
             <script type="text/javascript" src="www-files/sort.js"></script>
@@ -161,6 +198,7 @@ app.get('/', async (req, res) => {
             });
             });
             </script>
+
             </head>
             <body>
             <table id='mytable' class='center'>
@@ -183,7 +221,7 @@ app.get('/', async (req, res) => {
                 const pricePerGram = getPricePerGram(ro.cost, ro.weight);
 
                 htmlOutput += `
-                <tr style="border-top: 1px solid #383838;" id="${inventNumber}" class="${classIfEmpty}">
+                <tr style="border-top: 1px solid #383838; cursor: pointer;" id="${inventNumber}" class="${classIfEmpty}">
                     <td align='left' style='background-color: ${ro.color};'>${getIfEmptyX(ro.weight, ro.used)}</td>
                     <td align='left'>${ro.name}</td>
                     <td align='left'>${vendor}</td>
@@ -202,7 +240,15 @@ app.get('/', async (req, res) => {
 <input type="hidden" id="hersteller_order" value="asc">
 <input type="hidden" id="material_order" value="asc">
 <input type="hidden" id="verfuegbar_order" value="asc">
-<div style="z-index: 10; position: fixed; top: 50%; left: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); display:none; cursor: pointer;" id="popup"></div></body></html>`;
+<div style="z-index: 10; position: fixed; top: 50%; left: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); display:none; cursor: pointer;" id="popup"></div>
+
+<div id="editview" class="editview">
+        <div class="editview-content">
+            <span class="close-btn">&times;</span>
+            <p id="editview-text">Editview-Inhalt</p>
+        </div>
+    </div>            
+    <script src="www-files/script.js"></script></body></html>`;
 
             res.send(htmlOutput);
         } catch (err) {
@@ -211,7 +257,7 @@ app.get('/', async (req, res) => {
         }
 });
 
-const PORT = 80;
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
