@@ -9,7 +9,9 @@ services:
         max-file: "3"
     image: 2minus1is1/node-22alpine-express-pg:latest
     volumes:
-      - /docker-data/filamentdb-www:/home/node/app
+      - /docker-data/filamentdb-www/pictures:/home/node/app/pictures
+      - /docker-data/filamentdb-www/www-files:/home/node/app/www-files
+      - /docker-data/filamentdb-www/index.js:/home/node/app/index.js
     hostname: filament
     labels:
       - "traefik.enable=true"

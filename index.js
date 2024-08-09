@@ -86,11 +86,11 @@ app.get('/', async (req, res) => {
             <html>
             <head>
             <title>Filament Database - docker.mittelerde.cc</title>
-            <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-            <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-            <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-            <link rel="manifest" href="site.webmanifest">
-            <link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
+            <link rel="apple-touch-icon" sizes="180x180" href="www-files/apple-touch-icon.png">
+            <link rel="icon" type="image/png" sizes="32x32" href="www-files/favicon-32x32.png">
+            <link rel="icon" type="image/png" sizes="16x16" href="www-files/favicon-16x16.png">
+            <link rel="manifest" href="www-files/site.webmanifest">
+            <link rel="mask-icon" href="www-files/safari-pinned-tab.svg" color="#5bbad5">
             <meta name="msapplication-TileColor" content="#da532c">
             <meta name="theme-color" content="#ffffff">
             <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -140,7 +140,7 @@ app.get('/', async (req, res) => {
             }
             </style>
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-            <script type="text/javascript" src="sort.js"></script>
+            <script type="text/javascript" src="www-files/sort.js"></script>
             <script>
             $(document).ready(function(){
             $("#tablefilament td").not(".infocell").click(function(){
