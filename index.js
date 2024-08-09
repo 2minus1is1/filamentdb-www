@@ -257,6 +257,32 @@ app.get('/', async (req, res) => {
         }
 });
 
+// Route zum Abrufen der Daten aus der Datenbank
+app.get('/data/:id', async (req, res) => {
+    const id = req.params.id+'%';
+    try {
+        const resultspool = await client.query('SELECT * FROM spools WHERE name LIKE $1', [id]);
+        const resultprofile = await client.query('SELECT * FROM profiles WHERE id = $1', [resultspool.rows[0].profile_id]);
+
+        const mergedResult = {
+            ...resultspool.rows[0],
+            ...resultprofile.rows[0],
+            id_spooltable: resultspool.rows[0].id,
+            id_profiletable: resultprofile.rows[0].id
+        };
+
+        delete mergedResult.id;
+        delete mergedResult.profile_id;
+
+        mergedResult["AID"] = req.params.id;
+
+        res.json(mergedResult);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Fehler beim Abrufen der Daten');
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -266,3 +292,4 @@ process.on('SIGINT', () => {
     client.end();
     process.exit();
 });
+

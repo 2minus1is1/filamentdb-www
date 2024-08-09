@@ -1,11 +1,28 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('#myTable tr').forEach(row => {
-        row.addEventListener('click', function() {
-            const editview = document.getElementById('editview');
-            const editviewText = document.getElementById('editview-text');
-            
-            editviewText.textContent = `Details für ${this.id}`; // Anpassung des Inhalts basierend auf der Zeile
-            editview.style.display = 'flex'; // Editview anzeigen
+        row.addEventListener('click', async function(event) {
+            // Überprüfen, ob das geklickte Element nicht die Klasse "picturecell" oder "infocell" hat
+            if (!event.target.classList.contains('picturecell') && !event.target.classList.contains('infocell')) {
+                const id = this.id.replace('row', ''); // Annahme: Die ID des Elements entspricht der ID in der DB
+
+                try {
+                    // Abrufen der Daten vom Server
+                    const response = await fetch(`/data/${id}`);
+                    const data = await response.json();
+
+                    console.log(data);
+
+                    const editview = document.getElementById('editview');
+                    const editviewText = document.getElementById('editview-text');
+
+                    // Anpassung des Inhalts basierend auf den abgerufenen Daten
+                    editviewText.innerHTML = `<h2>${data.name} - ${data.vendor}</h2><img src='pictures/${data.AID}.jpg' style='width: 50%' />`; // Beispielhafte Ausgabe
+
+                    editview.style.display = 'flex'; // Editview anzeigen
+                } catch (err) {
+                    console.error('Fehler beim Abrufen der Daten:', err);
+                }
+            }
         });
     });
 
