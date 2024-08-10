@@ -183,6 +183,30 @@ app.get('/', async (req, res) => {
             #tablehistory td {
                 padding: 10px;
             }
+
+            .btn-eintragen {
+                background-color: #007BFF; /* Blau */
+                color: white; /* Weiße Schrift */
+                padding: 12px 24px; /* Innenabstand */
+                font-size: 36px; /* Schriftgröße */
+                border: none; /* Keine Umrandung */
+                border-radius: 5px; /* Abgerundete Ecken */
+                cursor: pointer; /* Zeiger ändern beim Überfahren */
+                transition: background-color 0.3s ease; /* Glatter Übergang für Hover-Effekt */
+                width: 100%;
+                margin-bottom: 20px;
+                margin-top: 10px;
+            }
+
+            .btn-eintragen:hover {
+                background-color: #0056b3; /* Dunkleres Blau bei Hover */
+            }
+
+            #btn-eintragen-div {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
             </style>
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
             <script type="text/javascript" src="www-files/sort.js"></script>
@@ -205,6 +229,7 @@ app.get('/', async (req, res) => {
 
             </head>
             <body>
+            <div id="btn-eintragen-div"><button class="btn-eintragen">Verbrauch eintragen</button></div>
             <table id='mytable' class='center'>
             <tr style='cursor: default;'>
             <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th><th>&nbsp;</th>
@@ -279,8 +304,6 @@ app.get('/data/:id', async (req, res) => {
             resultshistory: resultshistory.rows
         };
 
-        
-
         delete mergedResult.id;
         delete mergedResult.profile_id;
         delete mergedResult.used;
@@ -294,10 +317,14 @@ app.get('/data/:id', async (req, res) => {
     }
 });
 
-app.delete('/deletehistory/:id', async (req, res) => {
+app.delete('/deletehistory/:id/:used/:spool', async (req, res) => {
     const entryId = req.params.id;
+    const usedAmount = req.params.used;
+    const spoolId = req.params.spool;
 
     try {
+        await client.query('UPDATE spools SET used = used - $1 WHERE id = $2', [usedAmount, spoolId]);
+
         // Hier SQL-Query zum Löschen des Eintrags ausführen
         await client.query('DELETE FROM history WHERE id = $1', [entryId]);
 

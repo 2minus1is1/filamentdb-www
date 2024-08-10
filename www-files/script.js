@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const editviewText = document.getElementById('editview-text');
                 
                     // Anpassung des Inhalts basierend auf den abgerufenen Daten
-                    let editviewContent = `<h2 style='margin-bottom: 0px;'>${data.name} - ${data.material}</h2><strong>von ${data.vendor}</strong><br><img src='pictures/${data.AID}.jpg' style='width: 50%; margin-top: 15px; margin-bottom: 15px;' />`; 
+                    let editviewContent = `<h2 style='margin-bottom: 0px;'>${data.name} - ${data.material}</h2><strong>von ${data.vendor}</strong><br><img src='pictures/${data.AID}.jpg' style='width: 50%; margin-top: 15px; margin-bottom: 15px;' /><br><strong><span style="font-size: 22px;">Verfügbar: ${Math.round(data.weight - data.used_spooltable)} g</span></strong><br><br>`; 
                 
                     if (Array.isArray(data.resultshistory) && data.resultshistory.length > 0) {
                         editviewContent += `<table id='tablehistory' class='center' style='width: 80%; font-size: 18px;'><tbody>`;
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <td style='text-align: left;'>${formatDateTimeInVienna(item.datetime)}</td>
                                     <td style='text-align: right;'>${item.used} g</td>
                                     <td>&nbsp;</td>
-                                    <td><span class="delete-button" data-entry-id="${item.id}" style="cursor: pointer;" title="Löschen">❌</span></td>
+                                    <td><span class="delete-button" data-entry-id="${item.id}" data-used-amount="${item.used}" data-spool-id="${item.spool}" style="cursor: pointer;" title="Löschen">❌</span></td>
                                 </tr>`;
                         });
                         editviewContent += `</tbody></table>`; 
@@ -71,9 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Funktion zum Löschen eines Eintrags
-                async function deleteEntry(entryId) {
+                async function deleteEntry(entryId, usedAmount, spoolId) {
                     try {
-                        const response = await fetch(`/deletehistory/${entryId}`, {
+                        const response = await fetch(`/deletehistory/${entryId}/${usedAmount}/${spoolId}`, {
                             method: 'DELETE'
                         });
                 
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const editviewText = document.getElementById('editview-text');
                 
                             // Gleicher Inhalt wie oben, nur die Daten werden neu gesetzt
-                            let editviewContent = `<h2 style='margin-bottom: 0px;'>${updatedData.name} - ${updatedData.material}</h2><strong>von ${updatedData.vendor}</strong><br><img src='pictures/${updatedData.AID}.jpg' style='width: 50%; margin-top: 15px; margin-bottom: 15px;' />`; 
+                            let editviewContent = `<h2 style='margin-bottom: 0px;'>${updatedData.name} - ${updatedData.material}</h2><strong>von ${updatedData.vendor}</strong><br><img src='pictures/${updatedData.AID}.jpg' style='width: 50%; margin-top: 15px; margin-bottom: 15px;' /><br><strong><span style="font-size: 22px;">Verfügbar: ${Math.round(updatedData.weight - updatedData.used_spooltable)} g</span></strong><br><br>`; 
                 
                             if (Array.isArray(updatedData.resultshistory) && updatedData.resultshistory.length > 0) {
                                 editviewContent += `<table id='tablehistory' class='center' style='width: 80%; font-size: 18px;'><tbody>`;
@@ -95,13 +95,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <td style='text-align: left;'>${formatDateTimeInVienna(item.datetime)}</td>
                                             <td style='text-align: right;'>${item.used} g</td>
                                             <td>&nbsp;</td>
-                                            <td><span class="delete-button" data-entry-id="${item.id}" style="cursor: pointer;" title="Löschen">❌</span></td>
+                                            <td><span class="delete-button" data-entry-id="${item.id}" data-used-amount="${item.used}" data-spool-id="${item.spool}" style="cursor: pointer;" title="Löschen">❌</span></td>
                                         </tr>`;
                                 });
                                 editviewContent += `</tbody></table>`; 
                             }
                 
-                            editviewText.innerHTML = editviewContent;
+                            //editviewText.innerHTML = editviewContent;
+                            location.reload(true); // Seite neuladen damit Tabelle neue Zahlen hat.
                         } else {
                             alert('Fehler beim Löschen des Eintrags.');
                         }
@@ -112,8 +113,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelector('#editview').addEventListener('click', function(event) {
                     if (event.target.classList.contains('delete-button')) {
                         const entryId = event.target.dataset.entryId;
+                        const usedAmount = event.target.dataset.usedAmount;
+                        const spoolId = event.target.dataset.spoolId;
+
                         //console.log("clicked!!! id:" + entryId);
-                        deleteEntry(entryId);
+                        deleteEntry(entryId, usedAmount, spoolId);
                     }
                 });
             }
@@ -125,12 +129,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.close-btn').addEventListener('click', function() {
         const editview = document.getElementById('editview');
         editview.style.display = 'none'; // Editview ausblenden
+        //location.reload(true); // Seite neuladen damit Tabelle neue Zahlen hat.
     });
 
     window.onclick = function(event) {
         const editview = document.getElementById('editview');
         if (event.target == editview) {
             editview.style.display = 'none'; // Editview ausblenden, wenn außerhalb des Editviews geklickt wird
+            //location.reload(true); // Seite neuladen damit Tabelle neue Zahlen hat.
         }
     }
 });
