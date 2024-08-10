@@ -179,6 +179,10 @@ app.get('/', async (req, res) => {
                 text-decoration: none;
                 cursor: pointer;
             }
+
+            #tablehistory td {
+                padding: 10px;
+            }
             </style>
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
             <script type="text/javascript" src="www-files/sort.js"></script>
