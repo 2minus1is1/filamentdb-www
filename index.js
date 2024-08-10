@@ -294,6 +294,21 @@ app.get('/data/:id', async (req, res) => {
     }
 });
 
+app.delete('/deletehistory/:id', async (req, res) => {
+    const entryId = req.params.id;
+
+    try {
+        // Hier SQL-Query zum Löschen des Eintrags ausführen
+        await client.query('DELETE FROM history WHERE id = $1', [entryId]);
+
+        res.status(200).send('Eintrag erfolgreich gelöscht');
+    } catch (error) {
+        console.error('Fehler beim Löschen des Eintrags:', error);
+        res.status(500).send('Fehler beim Löschen des Eintrags');
+    }
+});
+
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
