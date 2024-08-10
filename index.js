@@ -229,7 +229,7 @@ app.get('/', async (req, res) => {
 
             </head>
             <body>
-            <div id="btn-eintragen-div"><button class="btn-eintragen">Verbrauch eintragen</button></div>
+            <div id="btn-eintragen-div"><button class="btn-eintragen" onclick="location.assign('/add')">Verbrauch eintragen</button></div>
             <table id='mytable' class='center'>
             <tr style='cursor: default;'>
             <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th><th>&nbsp;</th>
@@ -334,6 +334,218 @@ app.delete('/deletehistory/:id/:used/:spool', async (req, res) => {
         res.status(500).send('Fehler beim Löschen des Eintrags');
     }
 });
+
+
+
+
+app.get('/add', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM spools ORDER BY name ASC');
+        const rows = result.rows;  // Alle Einträge aus der Datenbank abrufen
+
+        let htmlOutput = `
+        <html>
+        <head>
+        <title>Verbrauch Eintragen / Filament Database - docker.mittelerde.cc</title>
+        <link rel="apple-touch-icon" sizes="180x180" href="www-files/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="www-files/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="www-files/favicon-16x16.png">
+        <link rel="manifest" href="www-files/site.webmanifest">
+        <link rel="mask-icon" href="www-files/safari-pinned-tab.svg" color="#5bbad5">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet">
+
+        <style>
+        body {
+            font-family: "Work Sans", sans-serif;
+            background-color: #181818;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+            padding-top: 20px; /* Abstand vom oberen Rand */
+        }
+
+        #container {
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .spool-select {
+            margin-right: 10px;
+            padding: 5px;
+        }
+
+        .spool-input {
+            padding: 5px;
+            margin-right: 10px;
+            width: 100px;
+        }
+
+        .reset-button, #add-element, #submit-element {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .reset-button {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+
+        .reset-button:hover {
+            background-color: #cc0000;
+        }
+
+        #add-element {
+            background-color: #00cc00;
+            color: #ffffff;
+            margin-top: 20px; /* Abstand zum vorherigen Element */
+        }
+
+        #add-element:hover {
+            background-color: #009900;
+        }
+
+        #submit-element {
+            background-color: #0066cc;
+            color: #ffffff;
+            margin-left: 10px;
+            margin-top: 20px;
+        }
+
+        #submit-element:hover {
+            background-color: #004c99;
+        }
+
+        #total {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        </style>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script>
+            let elementIndex = 0;
+
+            function resetFields(index) {
+                document.getElementById(\`spool-select-\${index}\`).selectedIndex = 0;
+                document.getElementById(\`input-\${index}\`).value = '';
+                calculateTotal(); // Gesamtberechnung nach Zurücksetzen
+            }
+
+            function addElement() {
+                elementIndex++;
+                const container = document.getElementById('container');
+
+                const newElement = document.createElement('div');
+                newElement.className = 'form-group';
+                newElement.innerHTML = \`
+                    <label for="spool-select-\${elementIndex}">Spool \${elementIndex + 1}</label>
+                    <select id="spool-select-\${elementIndex}" name="spool" class="spool-select">
+                        <option value="">-- Select a Filament --</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">${row.name}</option>
+                        `).join('')}
+                    </select>
+                    <input type="text" id="input-\${elementIndex}" class="spool-input" placeholder="Enter grams" />
+                    <button type="button" class="reset-button" onclick="resetFields(\${elementIndex})">🔄</button>
+                \`;
+
+                container.insertBefore(newElement, document.getElementById('total'));
+
+                // Füge den Event-Listener für das neu hinzugefügte Input-Feld hinzu
+                document.getElementById(\`input-\${elementIndex}\`).addEventListener('input', validateInput);
+            }
+
+            function validateInput(event) {
+                // Erlaubt nur Zahlen, Punkte und Kommas
+                const value = event.target.value;
+                event.target.value = value.replace(/[^0-9.,]/g, '');
+                calculateTotal(); // Aktualisiert die Gesamtsumme bei Eingabe
+            }
+
+            function calculateTotal() {
+                let total = 0;
+                for (let i = 0; i <= elementIndex; i++) {
+                    const value = document.getElementById(\`input-\${i}\`).value.replace(',', '.');
+                    if (!isNaN(parseFloat(value))) {
+                        total += parseFloat(value);
+                    }
+                }
+                document.getElementById('total').textContent = 'Total Grams: ' + total.toFixed(2);
+            }
+
+            function submitData() {
+                let data = [];
+                for (let i = 0; i <= elementIndex; i++) {
+                    const selectElement = document.getElementById(\`spool-select-\${i}\`);
+                    const inputValue = parseFloat(document.getElementById(\`input-\${i}\`).value.replace(',', '.'));
+                    const selectedOption = selectElement.options[selectElement.selectedIndex];
+                    const spoolId = selectedOption.value;
+                    const used = parseFloat(selectedOption.getAttribute('data-used'));
+
+                    if (spoolId && !isNaN(inputValue)) {
+                        data.push({
+                            id: spoolId,
+                            usage: inputValue,  // Input-Feld Wert
+                            new_used: used + inputValue
+                        });
+                    }
+                }
+                console.log(data);
+            }
+
+            // Event-Listener für das erste Input-Feld und Buttons hinzufügen
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('input-0').addEventListener('input', validateInput);
+                document.getElementById('add-element').addEventListener('click', addElement);
+                document.getElementById('submit-element').addEventListener('click', submitData);
+            });
+        </script>
+        </head>
+        <body>
+        <div id="container">
+            <div class="form-group">
+                <label for="spool-select-0">Spool 1</label>
+                <select id="spool-select-0" name="spool" class="spool-select">
+                    <option value="">-- Select a Filament --</option>
+                    ${rows.map(row => `
+                        <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">${row.name}</option>
+                    `).join('')}
+                </select>
+                <input type="text" id="input-0" class="spool-input" placeholder="Enter grams" />
+                <button type="button" class="reset-button" onclick="resetFields(0)">🔄</button>
+            </div>
+            <div id="total">Total Grams: 0.00</div>
+            <button type="button" id="add-element">+</button>
+            <button type="button" id="submit-element">Eintragen</button>
+        </div>
+        </body>
+        </html>`;
+
+        res.send(htmlOutput);
+    } catch (err) {
+        res.status(500).send('Internal Server Error');
+        console.error(err);
+    }
+});
+
+
+
+
+
+
+
+
 
 
 const PORT = 3000;
