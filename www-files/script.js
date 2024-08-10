@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const editviewText = document.getElementById('editview-text');
 
                     // Anpassung des Inhalts basierend auf den abgerufenen Daten
-                    editviewText.innerHTML = `<h2>${data.name} - ${data.vendor}</h2><img src='pictures/${data.AID}.jpg' style='width: 50%' />`; // Beispielhafte Ausgabe
+                    editviewText.innerHTML = `<h2 style='margin-bottom: 0px;'>${data.name} - ${data.material}</h2><strong>von ${data.vendor}</strong><br><img src='pictures/${data.AID}.jpg' style='width: 50%; margin-top: 15px;' />`; // Beispielhafte Ausgabe
 
                     editview.style.display = 'flex'; // Editview anzeigen
                 } catch (err) {

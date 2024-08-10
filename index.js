@@ -263,16 +263,23 @@ app.get('/data/:id', async (req, res) => {
     try {
         const resultspool = await client.query('SELECT * FROM spools WHERE name LIKE $1', [id]);
         const resultprofile = await client.query('SELECT * FROM profiles WHERE id = $1', [resultspool.rows[0].profile_id]);
+        const resultshistory = await client.query('SELECT * FROM history WHERE spool = $1', [resultspool.rows[0].id]);
+        
 
         const mergedResult = {
             ...resultspool.rows[0],
             ...resultprofile.rows[0],
             id_spooltable: resultspool.rows[0].id,
-            id_profiletable: resultprofile.rows[0].id
+            id_profiletable: resultprofile.rows[0].id,
+            used_spooltable: resultspool.rows[0].used,
+            resultshistory: resultshistory.rows
         };
+
+        
 
         delete mergedResult.id;
         delete mergedResult.profile_id;
+        delete mergedResult.used;
 
         mergedResult["AID"] = req.params.id;
 
