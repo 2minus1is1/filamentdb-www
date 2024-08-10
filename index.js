@@ -2,10 +2,14 @@ const express = require('express');
 const { Client } = require('pg');
 const path = require('path');
 
+const { DateTime } = require('luxon');
+
 const app = express();
 
 // Statische Dateien ausliefern
 app.use(express.static(path.join(__dirname)));
+
+app.use(express.json());
 
 // Hilfsfunktionen
 function getCalculatePercentageAvailable(weight_all, weight_used) {
@@ -338,6 +342,7 @@ app.delete('/deletehistory/:id/:used/:spool', async (req, res) => {
 
 
 
+
 app.get('/add', async (req, res) => {
     try {
         const result = await client.query('SELECT * FROM spools ORDER BY name ASC');
@@ -433,6 +438,25 @@ app.get('/add', async (req, res) => {
         }
         </style>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        
+        </head>
+        <body>
+        <div id="container">
+            <div class="form-group">
+                <label for="spool-select-0">Spool 1</label>
+                <select id="spool-select-0" name="spool" class="spool-select">
+                    <option value="">-- Select a Filament --</option>
+                    ${rows.map(row => `
+                        <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">${row.name}</option>
+                    `).join('')}
+                </select>
+                <input type="text" id="input-0" class="spool-input" placeholder="Enter grams" />
+                <button type="button" class="reset-button" onclick="resetFields(0)">🔄</button>
+            </div>
+            <div id="total">Total Grams: 0.00</div>
+            <button type="button" id="add-element">+</button>
+            <button type="button" id="submit-element">Eintragen</button>
+        </div>
         <script>
             let elementIndex = 0;
 
@@ -484,7 +508,7 @@ app.get('/add', async (req, res) => {
                 document.getElementById('total').textContent = 'Total Grams: ' + total.toFixed(2);
             }
 
-            function submitData() {
+            async function submitData() {
                 let data = [];
                 for (let i = 0; i <= elementIndex; i++) {
                     const selectElement = document.getElementById(\`spool-select-\${i}\`);
@@ -495,13 +519,40 @@ app.get('/add', async (req, res) => {
 
                     if (spoolId && !isNaN(inputValue)) {
                         data.push({
-                            id: spoolId,
+                            id: +spoolId,
                             usage: inputValue,  // Input-Feld Wert
                             new_used: used + inputValue
                         });
                     }
                 }
-                console.log(data);
+
+                // Überprüfe, ob Daten korrekt erstellt wurden
+
+                sendData(data);
+            }
+
+            async function sendData(data) {
+
+            // Sende die Daten an den Server zur Datenbankaktualisierung
+                try {
+                    const response = await fetch('/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    if (response.ok) {
+                        //alert('Daten erfolgreich eingetragen!');
+                        location.href = "/";
+                    } else {
+                        alert('Fehler beim Eintragen der Daten.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Fehler beim Eintragen der Daten.');
+                }
             }
 
             // Event-Listener für das erste Input-Feld und Buttons hinzufügen
@@ -511,24 +562,6 @@ app.get('/add', async (req, res) => {
                 document.getElementById('submit-element').addEventListener('click', submitData);
             });
         </script>
-        </head>
-        <body>
-        <div id="container">
-            <div class="form-group">
-                <label for="spool-select-0">Spool 1</label>
-                <select id="spool-select-0" name="spool" class="spool-select">
-                    <option value="">-- Select a Filament --</option>
-                    ${rows.map(row => `
-                        <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">${row.name}</option>
-                    `).join('')}
-                </select>
-                <input type="text" id="input-0" class="spool-input" placeholder="Enter grams" />
-                <button type="button" class="reset-button" onclick="resetFields(0)">🔄</button>
-            </div>
-            <div id="total">Total Grams: 0.00</div>
-            <button type="button" id="add-element">+</button>
-            <button type="button" id="submit-element">Eintragen</button>
-        </div>
         </body>
         </html>`;
 
@@ -536,6 +569,44 @@ app.get('/add', async (req, res) => {
     } catch (err) {
         res.status(500).send('Internal Server Error');
         console.error(err);
+    }
+});
+
+app.post('/update', async (req, res) => {
+
+    try {
+        
+        const data = req.body;
+
+        const dateTimeInVienna = DateTime.now().setZone('Europe/Vienna').toFormat("yyyy-LL-dd HH:mm:ss 'Europe/Vienna'");
+
+
+
+        // Beginne eine Transaktion
+        await client.query('BEGIN');
+
+        for (const item of data) {
+            const { id, usage, new_used } = item;
+
+            // Aktualisiere die Tabelle "spools"
+            await client.query('UPDATE spools SET used = $1 WHERE id = $2', [new_used, id]);
+
+            // Füge einen neuen Eintrag in die Tabelle "history" hinzu
+            await client.query(
+                'INSERT INTO history (spool, used, datetime) VALUES ($1, $2, $3)',
+                [id, usage, dateTimeInVienna]
+            );
+        }
+
+        // Commit der Transaktion
+        await client.query('COMMIT');
+
+        res.status(200).send('Daten erfolgreich eingetragen');
+    } catch (err) {
+        // Falls ein Fehler auftritt, rolle die Transaktion zurück
+        if (client) await client.query('ROLLBACK');
+        console.error(err);
+        res.status(500).send('Fehler beim Eintragen der Daten');
     }
 });
 
