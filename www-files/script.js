@@ -30,7 +30,7 @@ function formatDateTimeInVienna(timeString) {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    document.querySelectorAll('#myTable tr').forEach(row => {
+    document.querySelectorAll('#tablefilament tr').forEach(row => {
         row.addEventListener('click', async function(event) {
             // Überprüfen, ob das geklickte Element nicht die Klasse "picturecell" oder "infocell" hat
             if (!event.target.classList.contains('picturecell') && !event.target.classList.contains('infocell')) {

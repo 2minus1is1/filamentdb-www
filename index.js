@@ -236,6 +236,21 @@ app.get('/', async (req, res) => {
             background-color: #0056b3; /* Dunkleres Blau bei Hover */
         }
 
+        
+        #toggleButton {
+            background-color: #007BFF; /* Blau */
+            color: white; /* Weiße Schrift */
+            font-size: 36px; /* Schriftgröße */
+            border: none; /* Keine Umrandung */
+            border-radius: 5px; /* Abgerundete Ecken */
+            cursor: pointer; /* Zeiger ändern beim Überfahren */
+            transition: background-color 0.3s ease; /* Glatter Übergang für Hover-Effekt */
+        }
+
+        #toggleButton:hover {
+            background-color: #0056b3; /* Dunkleres Blau bei Hover */
+        }
+
         #btn-eintragen-div {
             margin-left: auto;
             margin-right: auto;
@@ -351,7 +366,7 @@ app.get('/', async (req, res) => {
         </head>
         <body>
 
-        <div id="container">
+        <div id="container-select">
             <div class="selection-row">
                 <div class="selection-group" style="background-color: #ffffff4a; color: #fff;">
                     <label for="spool-select-s1">S1</label>
@@ -475,7 +490,7 @@ app.get('/', async (req, res) => {
         
         <table id='mytable' class='center'>
         <tr style='cursor: default;'>
-        <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th>
+        <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th><button id="toggleButton">🚫</button></th>
         </tr>
         <tbody id='tablefilament'>`;
 
@@ -519,6 +534,20 @@ app.get('/', async (req, res) => {
             <p id="editview-text">Editview-Inhalt</p>
         </div>
     </div>            
+    <script>
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            var rows = document.querySelectorAll('#tablefilament tr.linethrough');
+            rows.forEach(function(row) {
+                if (row.style.display === 'none') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+
+    </script>
     <script src="www-files/script.js"></script></body></html>`;
 
         res.send(htmlOutput);
@@ -603,6 +632,29 @@ app.get('/add', async (req, res) => {
         const result = await client.query('SELECT * FROM spools ORDER BY name ASC');
         const rows = result.rows;  // Alle Einträge aus der Datenbank abrufen
 
+        const resultMaterial = await client.query('SELECT * FROM profiles ORDER BY id ASC');
+        const materials = resultMaterial.rows;
+
+        const selectionResult = await client.query('SELECT * FROM selection WHERE ID = 1'); // Annahme: du möchtest die erste Zeile bearbeiten
+        const selection = selectionResult.rows[0];
+
+
+        const materialsMap = {};
+        materials.forEach(material => {
+            materialsMap[material.id] = {
+                vendor: material.vendor,
+                material: material.material
+            };
+        });
+
+        rows.forEach(row => {
+            const materialInfo = materialsMap[row.profile_id];
+            if (materialInfo) {
+                row.vendor = materialInfo.vendor;
+                row.material = materialInfo.material;
+            }
+        });
+
         let htmlOutput = `
         <html>
         <head>
@@ -620,14 +672,21 @@ app.get('/add', async (req, res) => {
         <link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet">
 
         <style>
-        body {
+        html, body {
             font-family: "Work Sans", sans-serif;
             background-color: #181818;
             color: #ffffff;
-            display: flex;
-            justify-content: center;
             margin: 0;
-            padding-top: 20px; /* Abstand vom oberen Rand */
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        .center {
+            margin-left: auto;
+            margin-right: auto;
+            min-width: 50%; /* Dies bedeutet, dass das Element mindestens 50% der Breite einnimmt */
+            width: 100%; /* Stellen Sie sicher, dass das Element die volle Breite einnimmt */
+            border-collapse: collapse;
         }
 
         #container {
@@ -649,7 +708,7 @@ app.get('/add', async (req, res) => {
             width: 100px;
         }
 
-        .reset-button, #add-element, #submit-element {
+        .reset-button, #add-element, #submit-element, #back-element {
             padding: 5px 10px;
             border-radius: 5px;
             border: none;
@@ -687,15 +746,220 @@ app.get('/add', async (req, res) => {
             background-color: #004c99;
         }
 
+        #back-element {
+            background-color: #242424;
+            color: #ffffff;
+            margin-left: 10px;
+            margin-top: 20px;
+        }
+
+        #back-element:hover {
+            background-color: #000;
+        }
+
         #total {
             margin-top: 20px;
             font-size: 1.2em;
         }
+
+        .selection-row {
+            display: flex; /* Ordnet die .selection-group-Elemente in einer Zeile an */
+            justify-content: space-between; /* Verteilt die Elemente gleichmäßig */
+            margin-bottom: 20px; /* Abstand zwischen den Reihen */
+        }
+
+        .selection-group {
+            flex: 1; /* Macht jede Gruppe gleich breit innerhalb der Zeile */
+            /*margin-right: 15px;  Abstand zwischen den Gruppen */
+            padding: 5px;
+        }
+
+        .selection-group:last-child {
+            margin-right: 0; /* Entfernt den rechten Rand bei der letzten Gruppe in der Zeile */
+        }
+
+        .selection-group label {
+            font-size: 28px;
+            text-align: center;
+            font-weight: 700;
+            display: block; /* Stellt sicher, dass das Label über dem Select-Element steht */
+            margin-bottom: 5px; /* Abstand zwischen Label und Select-Element */
+        }
+
+        .selection-group select {
+            width: 100%; /* Macht das Select-Element genauso breit wie die .selection-group */
+            padding: 5px;
+            pointer-events: none;
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .grey-background {
+            background-color: #ccc;
+            color: #000;
+        }
+
+        .orange-background {
+            background-color: #f55e00;
+            color: #000;
+        }
+
+        .red-background {
+            background-color: #db0000;
+            color: #000;
+        }
+
+        .weight-info {
+            font-size: 20px;
+            text-align: center;
+        }
         </style>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-        
+        <script>
+            $(document).ready(function() {
+                $('.spool-select').on('change', function() {
+                    const selectedOption = $(this).find('option:selected');
+                    const availableWeight = selectedOption.data('available-weight');
+                    if (availableWeight == "") {
+                        $(this).siblings('.weight-info').html('&nbsp;');
+                    } else {
+                        $(this).siblings('.weight-info').text(availableWeight + ' g');
+                    }
+                });
+                // Initial load to show the weight of the selected option
+                $('.spool-select').each(function() {
+                    const selectedOption = $(this).find('option:selected');
+                    const availableWeight = selectedOption.data('available-weight');
+                    if (availableWeight == "") {
+                        $(this).siblings('.weight-info').html('&nbsp;');
+                    } else {
+                        $(this).siblings('.weight-info').text(availableWeight + ' g');
+                    }
+                    
+                });
+            });
+        </script>
         </head>
         <body>
+        <div id="container-select">
+            <div class="selection-row">
+                <div class="selection-group" style="background-color: #ffffff4a; color: #fff;">
+                    <label for="spool-select-s1">S1</label>
+                    <select id="spool-select-s1" class="spool-select" name="s1">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.s1 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+
+                <div class="selection-group grey-background" style="border-left: solid;">
+                    <label for="spool-select-a1">A1</label>
+                    <select id="spool-select-a1" class="spool-select" name="a1">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a1 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a2">A2</label>
+                    <select id="spool-select-a2" class="spool-select" name="a2">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a2 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a3">A3</label>
+                    <select id="spool-select-a3" class="spool-select" name="a3">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a3 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a4">A4</label>
+                    <select id="spool-select-a4" class="spool-select" name="a4">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a4 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+
+                <div class="selection-group grey-background" style="border-left: solid;">
+                    <label for="spool-select-a5">A5</label>
+                    <select id="spool-select-a5" class="spool-select" name="a5">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a5 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a6">A6</label>
+                    <select id="spool-select-a6" class="spool-select" name="a6">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a6 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a7">A7</label>
+                    <select id="spool-select-a7" class="spool-select" name="a7">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a7 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a8">A8</label>
+                    <select id="spool-select-a8" class="spool-select" name="a8">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a8 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+            </div>
+            <div class="selection-row">
+                <div class="selection-group red-background">
+                    <label for="spool-select-voron">VORON</label>
+                    <select id="spool-select-voron" class="spool-select" name="voron">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.voron === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+                <div class="selection-group orange-background">
+                    <label for="spool-select-prusa">PRUSA</label>
+                    <select id="spool-select-prusa" class="spool-select" name="prusa">
+                        <option value="" data-available-weight="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.prusa === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
+                        `).join('')}
+                    </select>
+                    <div class="weight-info"></div>
+                </div>
+            </div>
+        </div>
+        <br>
         <div id="container">
             <div class="form-group">
                 <label for="spool-select-0">Spool 1</label>
@@ -711,6 +975,7 @@ app.get('/add', async (req, res) => {
             <div id="total">Total Grams: 0.00</div>
             <button type="button" id="add-element">+</button>
             <button type="button" id="submit-element">Eintragen</button>
+            <button type="button" id="back-element" onclick="window.location.href='/'">Zurück</button>
         </div>
         <script>
             let elementIndex = 0;
