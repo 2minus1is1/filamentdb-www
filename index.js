@@ -11,6 +11,13 @@ app.use(express.static(path.join(__dirname)));
 
 app.use(express.json());
 
+const client = new Client({
+    host: 'docker.mittelerde.cc',
+    user: 'filamentdb-www',
+    password: 'filamentdb-www',
+    database: 'filamentdb'
+});
+
 // Hilfsfunktionen
 function getCalculatePercentageAvailable(weight_all, weight_used) {
     const value = weight_used / weight_all;
@@ -76,12 +83,7 @@ function getPricePerGram(cost, weight) {
     return (cost / weight).toFixed(2);
 }
 
-const client = new Client({
-    host: 'docker.mittelerde.cc',
-    user: 'filamentdb-www',
-    password: 'filamentdb-www',
-    database: 'filamentdb'
-});
+
 
 client.connect();
 
@@ -237,6 +239,7 @@ app.get('/', async (req, res) => {
         }
 
         .selection-group label {
+            font-size: 28px;
             text-align: center;
             font-weight: 700;
             display: block; /* Stellt sicher, dass das Label über dem Select-Element steht */
@@ -261,6 +264,11 @@ app.get('/', async (req, res) => {
         .red-background {
             background-color: #db0000;
             color: #000;
+        }
+
+        .weight-info {
+            font-size: 20px;
+            text-align: center;
         }
 
 
@@ -297,6 +305,30 @@ app.get('/', async (req, res) => {
             });
         });
         </script>
+        <script>
+            $(document).ready(function() {
+                $('.spool-select').on('change', function() {
+                    const selectedOption = $(this).find('option:selected');
+                    const availableWeight = selectedOption.data('available-weight');
+                    if (availableWeight == "") {
+                        $(this).siblings('.weight-info').html('&nbsp;');
+                    } else {
+                        $(this).siblings('.weight-info').text(availableWeight + ' g');
+                    }
+                });
+                // Initial load to show the weight of the selected option
+                $('.spool-select').each(function() {
+                    const selectedOption = $(this).find('option:selected');
+                    const availableWeight = selectedOption.data('available-weight');
+                    if (availableWeight == "") {
+                        $(this).siblings('.weight-info').html('&nbsp;');
+                    } else {
+                        $(this).siblings('.weight-info').text(availableWeight + ' g');
+                    }
+                    
+                });
+            });
+        </script>
         </head>
         <body>
 
@@ -305,105 +337,116 @@ app.get('/', async (req, res) => {
                 <div class="selection-group" style="background-color: #ffffff4a; color: #fff;">
                     <label for="spool-select-s1">S1</label>
                     <select id="spool-select-s1" class="spool-select" name="s1">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.s1 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.s1 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
 
                 <div class="selection-group grey-background" style="border-left: solid;">
                     <label for="spool-select-a1">A1</label>
                     <select id="spool-select-a1" class="spool-select" name="a1">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a1 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a1 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
                     <label for="spool-select-a2">A2</label>
                     <select id="spool-select-a2" class="spool-select" name="a2">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a2 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a2 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
                     <label for="spool-select-a3">A3</label>
                     <select id="spool-select-a3" class="spool-select" name="a3">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a3 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a3 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
                     <label for="spool-select-a4">A4</label>
                     <select id="spool-select-a4" class="spool-select" name="a4">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a4 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a4 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
 
                 <div class="selection-group grey-background" style="border-left: solid;">
                     <label for="spool-select-a5">A5</label>
                     <select id="spool-select-a5" class="spool-select" name="a5">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a5 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a5 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
                     <label for="spool-select-a6">A6</label>
                     <select id="spool-select-a6" class="spool-select" name="a6">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a6 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a6 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
                     <label for="spool-select-a7">A7</label>
                     <select id="spool-select-a7" class="spool-select" name="a7">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a7 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a7 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
                     <label for="spool-select-a8">A8</label>
                     <select id="spool-select-a8" class="spool-select" name="a8">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.a8 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a8 === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
             </div>
             <div class="selection-row">
                 <div class="selection-group red-background">
                     <label for="spool-select-voron">VORON</label>
                     <select id="spool-select-voron" class="spool-select" name="voron">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.voron === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.voron === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
                 <div class="selection-group orange-background">
                     <label for="spool-select-prusa">PRUSA</label>
                     <select id="spool-select-prusa" class="spool-select" name="prusa">
-                        <option value="">--- LEER ---</option>
+                        <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" ${selection.prusa === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.prusa === row.id ? 'selected' : ''}>${row.name}</option>
                         `).join('')}
                     </select>
+                    <div class="weight-info"></div>
                 </div>
             </div>
         </div>
@@ -413,7 +456,7 @@ app.get('/', async (req, res) => {
         
         <table id='mytable' class='center'>
         <tr style='cursor: default;'>
-        <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th><th>&nbsp;</th>
+        <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th>
         </tr>
         <tbody id='tablefilament'>`;
 
@@ -441,7 +484,6 @@ app.get('/', async (req, res) => {
                 <td align='right' class='${warningClass}'>${percentageUsed} %<br>${Math.round(ro.used)} g</td>
                 <td align='center'>${ro.weight} g</td>
                 <td align='center'>${totalWeightNew}</td>
-                <td align='center' class='picturecell' style='cursor: pointer;'>${picture}</td>
                 <td align='center' class='infocell' style='cursor: pointer;'>${information}</td>
             </tr>`;
         }
