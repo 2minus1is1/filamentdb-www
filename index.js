@@ -87,189 +87,366 @@ client.connect();
 
 app.get('/', async (req, res) => {
     try {
-            const result = await client.query('SELECT * FROM spools ORDER BY name ASC');
-            const rows = result.rows;
+        const result = await client.query('SELECT * FROM spools ORDER BY name ASC');
+        const rows = result.rows;
 
-            let htmlOutput = `
-            <html>
-            <head>
-            <title>Filament Database - docker.mittelerde.cc</title>
-            <link rel="apple-touch-icon" sizes="180x180" href="www-files/apple-touch-icon.png">
-            <link rel="icon" type="image/png" sizes="32x32" href="www-files/favicon-32x32.png">
-            <link rel="icon" type="image/png" sizes="16x16" href="www-files/favicon-16x16.png">
-            <link rel="manifest" href="www-files/site.webmanifest">
-            <link rel="mask-icon" href="www-files/safari-pinned-tab.svg" color="#5bbad5">
-            <meta name="msapplication-TileColor" content="#da532c">
-            <meta name="theme-color" content="#ffffff">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet">
-            <style>
-            body {
-                font-family: "Work Sans", sans-serif;
-                align: center;
-                background-color: #181818;
-                color: #ffffff;
-            }
-            .center {
+        const selectionResult = await client.query('SELECT * FROM selection WHERE ID = 1'); // Annahme: du möchtest die erste Zeile bearbeiten
+        const selection = selectionResult.rows[0];
+
+        let htmlOutput = `
+        <html>
+        <head>
+        <title>Filament Database - docker.mittelerde.cc</title>
+        <link rel="apple-touch-icon" sizes="180x180" href="www-files/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="www-files/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="www-files/favicon-16x16.png">
+        <link rel="manifest" href="www-files/site.webmanifest">
+        <link rel="mask-icon" href="www-files/safari-pinned-tab.svg" color="#5bbad5">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="viewport" content="width=1300, initial-scale=1.0, user-scalable=yes">
+
+
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet">
+        <style>
+        html, body {
+            font-family: "Work Sans", sans-serif;
+            background-color: #181818;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        .center {
             margin-left: auto;
             margin-right: auto;
-            min-width: 50%;
+            min-width: 50%; /* Dies bedeutet, dass das Element mindestens 50% der Breite einnimmt */
+            width: 100%; /* Stellen Sie sicher, dass das Element die volle Breite einnimmt */
             border-collapse: collapse;
-            }
-            .center td {
+        }
+
+
+        .center td {
             padding: 0 5px;
-            }
-            .warn-darkgreen {
-                background-color:#339900;
-                color:#ffffff;
-            }
-            .warn-lightgreen {
-                background-color:#99cc33;
-                color:#000000;
-            }
-            .warn-yellow {
-                background-color:#ffcc00;
-                color:#000000;
-            }
-            .warn-orange {
-                background-color:#cb5e0b;
-                color:#ffffff;
-            }
-            .warn-red {
-                background-color:#cc3300;
-                color:#ffffff;
-            }
-            .linethrough {
-                /*text-decoration: line-through;
-                text-decoration-color:#cc3300;
-                text-decoration-thickness: 15%;*/
-                background-color:#cc3300;
-            }
-            #editview {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.7);
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            }
+        }
+        .warn-darkgreen {
+            background-color:#339900;
+            color:#ffffff;
+        }
+        .warn-lightgreen {
+            background-color:#99cc33;
+            color:#000000;
+        }
+        .warn-yellow {
+            background-color:#ffcc00;
+            color:#000000;
+        }
+        .warn-orange {
+            background-color:#cb5e0b;
+            color:#ffffff;
+        }
+        .warn-red {
+            background-color:#cc3300;
+            color:#ffffff;
+        }
+        .linethrough {
+            background-color:#cc3300;
+        }
+        #editview {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-            .editview-content {
-                background-color: #2c2c2c;
-                padding: 20px;
-                border-radius: 10px;
-                text-align: center;
-                width: 80%;
-                max-width: 400px;
-            }
+        .editview-content {
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+        }
 
-            .close-btn {
-                color: #aaa;
-                float: right;
-                font-size: 28px;
-                font-weight: bold;
-                cursor: pointer;
-            }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-            .close-btn:hover,
-            .close-btn:focus {
-                color: #fff;
-                text-decoration: none;
-                cursor: pointer;
-            }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-            #tablehistory td {
-                padding: 10px;
-            }
+        #tablehistory td {
+            padding: 10px;
+        }
 
-            .btn-eintragen {
-                background-color: #007BFF; /* Blau */
-                color: white; /* Weiße Schrift */
-                padding: 12px 24px; /* Innenabstand */
-                font-size: 36px; /* Schriftgröße */
-                border: none; /* Keine Umrandung */
-                border-radius: 5px; /* Abgerundete Ecken */
-                cursor: pointer; /* Zeiger ändern beim Überfahren */
-                transition: background-color 0.3s ease; /* Glatter Übergang für Hover-Effekt */
-                width: 100%;
-                margin-bottom: 20px;
-                margin-top: 10px;
-            }
+        .btn-eintragen {
+            background-color: #007BFF; /* Blau */
+            color: white; /* Weiße Schrift */
+            padding: 12px 24px; /* Innenabstand */
+            font-size: 36px; /* Schriftgröße */
+            border: none; /* Keine Umrandung */
+            border-radius: 5px; /* Abgerundete Ecken */
+            cursor: pointer; /* Zeiger ändern beim Überfahren */
+            transition: background-color 0.3s ease; /* Glatter Übergang für Hover-Effekt */
+            width: 100%;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
 
-            .btn-eintragen:hover {
-                background-color: #0056b3; /* Dunkleres Blau bei Hover */
-            }
+        .btn-eintragen:hover {
+            background-color: #0056b3; /* Dunkleres Blau bei Hover */
+        }
 
-            #btn-eintragen-div {
-                margin-left: auto;
-                margin-right: auto;
-            }
+        #btn-eintragen-div {
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-            </style>
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-            <script type="text/javascript" src="www-files/sort.js"></script>
-            <script>
-            $(document).ready(function(){
-            $(".picturecell").not(".infocell").click(function(){
-                $("#popup").hide();
-                $("#popup img:last-child").remove();
-                //$(this).closest("tr").next("tr.picture").toggle();
-                rowid = $(this).parent().attr("id");
-                $("#popup").prepend(\'<img id="theImg" style="width: 100%" src="pictures/\'+rowid+\'.jpg" />\');
-                $("#popup").show();
+        .selection-row {
+            display: flex; /* Ordnet die .selection-group-Elemente in einer Zeile an */
+            justify-content: space-between; /* Verteilt die Elemente gleichmäßig */
+            margin-bottom: 20px; /* Abstand zwischen den Reihen */
+        }
+
+        .selection-group {
+            flex: 1; /* Macht jede Gruppe gleich breit innerhalb der Zeile */
+            /*margin-right: 15px;  Abstand zwischen den Gruppen */
+            padding: 5px;
+        }
+
+        .selection-group:last-child {
+            margin-right: 0; /* Entfernt den rechten Rand bei der letzten Gruppe in der Zeile */
+        }
+
+        .selection-group label {
+            text-align: center;
+            font-weight: 700;
+            display: block; /* Stellt sicher, dass das Label über dem Select-Element steht */
+            margin-bottom: 5px; /* Abstand zwischen Label und Select-Element */
+        }
+
+        .selection-group select {
+            width: 100%; /* Macht das Select-Element genauso breit wie die .selection-group */
+            padding: 5px;
+        }
+
+        .grey-background {
+            background-color: #ccc;
+            color: #000;
+        }
+
+        .orange-background {
+            background-color: #f55e00;
+            color: #000;
+        }
+
+        .red-background {
+            background-color: #db0000;
+            color: #000;
+        }
+
+
+
+        </style>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script type="text/javascript" src="www-files/sort.js"></script>
+        <script>
+        function updateSelection(columnName, spoolId) {
+            $.ajax({
+                url: '/update-selection',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ column: columnName, spoolId: spoolId }),
+                success: function(response) {
+                    console.log('Selection updated successfully');
+                },
+                error: function(error) {
+                    console.error('Error updating selection:', error);
+                }
             });
-            $("#popup").click(function(){
-                $("#popup").hide();
-                $("#popup img:last-child").remove();
+        }
+
+        $(document).ready(function() {
+            $('.spool-select').on('change', function() {
+                const columnName = $(this).attr('name');
+                let spoolId = $(this).val();
+                    if (spoolId == '') {
+                        spoolId = 0;
+                    } 
+
+
+                updateSelection(columnName, spoolId);
             });
-            });
-            </script>
+        });
+        </script>
+        </head>
+        <body>
 
-            </head>
-            <body>
-            <div id="btn-eintragen-div"><button class="btn-eintragen" onclick="location.assign('/add')">Verbrauch eintragen</button></div>
-            <table id='mytable' class='center'>
-            <tr style='cursor: default;'>
-            <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th><th>&nbsp;</th>
-            </tr>
-            <tbody id='tablefilament'>`;
+        <div id="container">
+            <div class="selection-row">
+                <div class="selection-group" style="background-color: #ffffff4a; color: #fff;">
+                    <label for="spool-select-s1">S1</label>
+                    <select id="spool-select-s1" class="spool-select" name="s1">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.s1 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
 
-            for (let ro of rows) {
-                const vendor = await getVendor(ro.profile_id, client);
-                const material = await getMaterial(ro.profile_id, client);
-                const percentageAvailable = getCalculatePercentageAvailable(ro.weight, ro.used);
-                const percentageUsed = getCalculatePercentageUsed(ro.weight, ro.used);
-                const warningClass = getWarningUsed(percentageUsed);
-                const classIfEmpty = getIfEmpty(ro.weight, ro.used);
-                const inventNumber = getInventNumber(ro.name);
-                const totalWeightNew = getTotalWeightNew(ro.total_weight_new);
-                const picture = getPicture(ro.picture);
-                const information = getInformation(ro.information);
-                const pricePerGram = getPricePerGram(ro.cost, ro.weight);
+                <div class="selection-group grey-background" style="border-left: solid;">
+                    <label for="spool-select-a1">A1</label>
+                    <select id="spool-select-a1" class="spool-select" name="a1">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a1 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a2">A2</label>
+                    <select id="spool-select-a2" class="spool-select" name="a2">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a2 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a3">A3</label>
+                    <select id="spool-select-a3" class="spool-select" name="a3">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a3 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a4">A4</label>
+                    <select id="spool-select-a4" class="spool-select" name="a4">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a4 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
 
-                htmlOutput += `
-                <tr style="border-top: 1px solid #383838; cursor: pointer;" id="${inventNumber}" class="${classIfEmpty}">
-                    <td align='left' style='background-color: ${ro.color};'>${getIfEmptyX(ro.weight, ro.used)}</td>
-                    <td align='left'>${ro.name}</td>
-                    <td align='left'>${vendor}</td>
-                    <td align='center'>${material}</td>
-                    <td align='center'>€ ${ro.cost}<br>€ ${pricePerGram}/g</td>
-                    <td align='right' class='${warningClass}'>${percentageAvailable} %<br>${Math.round(ro.weight - ro.used)} g</td>
-                    <td align='right' class='${warningClass}'>${percentageUsed} %<br>${Math.round(ro.used)} g</td>
-                    <td align='center'>${ro.weight} g</td>
-                    <td align='center'>${totalWeightNew}</td>
-                    <td align='center' class='picturecell' style='cursor: pointer;'>${picture}</td>
-                    <td align='center' class='infocell' style='cursor: pointer;'>${information}</td>
-                </tr>`;
-            }
+                <div class="selection-group grey-background" style="border-left: solid;">
+                    <label for="spool-select-a5">A5</label>
+                    <select id="spool-select-a5" class="spool-select" name="a5">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a5 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a6">A6</label>
+                    <select id="spool-select-a6" class="spool-select" name="a6">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a6 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a7">A7</label>
+                    <select id="spool-select-a7" class="spool-select" name="a7">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a7 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="selection-group grey-background">
+                    <label for="spool-select-a8">A8</label>
+                    <select id="spool-select-a8" class="spool-select" name="a8">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.a8 === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            </div>
+            <div class="selection-row">
+                <div class="selection-group red-background">
+                    <label for="spool-select-voron">VORON</label>
+                    <select id="spool-select-voron" class="spool-select" name="voron">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.voron === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="selection-group orange-background">
+                    <label for="spool-select-prusa">PRUSA</label>
+                    <select id="spool-select-prusa" class="spool-select" name="prusa">
+                        <option value="">--- LEER ---</option>
+                        ${rows.map(row => `
+                            <option value="${row.id}" ${selection.prusa === row.id ? 'selected' : ''}>${row.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            </div>
+        </div>
+                            <center>
+                                <div id="btn-eintragen-div"><button class="btn-eintragen" onclick="location.assign('/add')">Verbrauch eintragen</button></div>
+                            </center>
+        
+        <table id='mytable' class='center'>
+        <tr style='cursor: default;'>
+        <th>Farbe</th><th align='center' style='cursor: ns-resize;' onclick='sort_filament();'>Filament 🔄</th><th align='left' style='cursor: ns-resize;' onclick='sort_hersteller();'>Hersteller 🔄</th><th style='cursor: ns-resize;' onclick='sort_material();'>Material 🔄</th><th>Preis</th><th style='cursor: ns-resize;' onclick='sort_verfuegbar();'>Verf&uuml;gbar 🔄</th><th>Verbraucht</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>Hersteller</th><th style='padding: 0 10px 0 10px;'>Gewicht<br>gewogen</th><th>&nbsp;</th><th>&nbsp;</th>
+        </tr>
+        <tbody id='tablefilament'>`;
 
-            htmlOutput += `</tbody></table><input type="hidden" id="filament_order" value="asc">
+        for (let ro of rows) {
+            const vendor = await getVendor(ro.profile_id, client);
+            const material = await getMaterial(ro.profile_id, client);
+            const percentageAvailable = getCalculatePercentageAvailable(ro.weight, ro.used);
+            const percentageUsed = getCalculatePercentageUsed(ro.weight, ro.used);
+            const warningClass = getWarningUsed(percentageUsed);
+            const classIfEmpty = getIfEmpty(ro.weight, ro.used);
+            const inventNumber = getInventNumber(ro.name);
+            const totalWeightNew = getTotalWeightNew(ro.total_weight_new);
+            const picture = getPicture(ro.picture);
+            const information = getInformation(ro.information);
+            const pricePerGram = getPricePerGram(ro.cost, ro.weight);
+
+            htmlOutput += `
+            <tr style="border-top: 1px solid #383838; cursor: pointer;" id="${inventNumber}" class="${classIfEmpty}">
+                <td align='left' style='background-color: ${ro.color};'>${getIfEmptyX(ro.weight, ro.used)}</td>
+                <td align='left'>${ro.name}</td>
+                <td align='left'>${vendor}</td>
+                <td align='center'>${material}</td>
+                <td align='center'>€ ${ro.cost}<br>€ ${pricePerGram}/g</td>
+                <td align='right' class='${warningClass}'>${percentageAvailable} %<br>${Math.round(ro.weight - ro.used)} g</td>
+                <td align='right' class='${warningClass}'>${percentageUsed} %<br>${Math.round(ro.used)} g</td>
+                <td align='center'>${ro.weight} g</td>
+                <td align='center'>${totalWeightNew}</td>
+                <td align='center' class='picturecell' style='cursor: pointer;'>${picture}</td>
+                <td align='center' class='infocell' style='cursor: pointer;'>${information}</td>
+            </tr>`;
+        }
+
+        htmlOutput += `</tbody></table><input type="hidden" id="filament_order" value="asc">
 <input type="hidden" id="hersteller_order" value="asc">
 <input type="hidden" id="material_order" value="asc">
 <input type="hidden" id="verfuegbar_order" value="asc">
@@ -283,12 +460,29 @@ app.get('/', async (req, res) => {
     </div>            
     <script src="www-files/script.js"></script></body></html>`;
 
-            res.send(htmlOutput);
-        } catch (err) {
-            res.status(500).send('Internal Server Error');
-            console.error(err);
-        }
+        res.send(htmlOutput);
+    } catch (err) {
+        res.status(500).send('Internal Server Error');
+        console.error(err);
+    }
 });
+
+// Route to handle the update request
+app.post('/update-selection', async (req, res) => {
+    const { column, spoolId } = req.body;
+
+    try {
+        // Update the appropriate column in the selection table
+        await client.query(`UPDATE selection SET ${column} = $1 WHERE id = 1`, [spoolId]);
+
+        res.status(200).send('Selection updated successfully');
+    } catch (error) {
+        console.error('Error updating selection:', error);
+        res.status(500).send('Error updating selection');
+    }
+});
+
+
 
 // Route zum Abrufen der Daten aus der Datenbank
 app.get('/data/:id', async (req, res) => {
