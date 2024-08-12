@@ -92,8 +92,27 @@ app.get('/', async (req, res) => {
         const result = await client.query('SELECT * FROM spools ORDER BY name ASC');
         const rows = result.rows;
 
+        const resultMaterial = await client.query('SELECT * FROM profiles ORDER BY id ASC');
+        const materials = resultMaterial.rows;
+
         const selectionResult = await client.query('SELECT * FROM selection WHERE ID = 1'); // Annahme: du möchtest die erste Zeile bearbeiten
         const selection = selectionResult.rows[0];
+
+        const materialsMap = {};
+        materials.forEach(material => {
+            materialsMap[material.id] = {
+                vendor: material.vendor,
+                material: material.material
+            };
+        });
+
+        rows.forEach(row => {
+            const materialInfo = materialsMap[row.profile_id];
+            if (materialInfo) {
+                row.vendor = materialInfo.vendor;
+                row.material = materialInfo.material;
+            }
+        });
 
         let htmlOutput = `
         <html>
@@ -339,7 +358,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-s1" class="spool-select" name="s1">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.s1 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.s1 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -350,7 +369,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a1" class="spool-select" name="a1">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a1 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a1 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -360,7 +379,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a2" class="spool-select" name="a2">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a2 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a2 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -370,7 +389,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a3" class="spool-select" name="a3">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a3 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a3 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -380,7 +399,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a4" class="spool-select" name="a4">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a4 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a4 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -391,7 +410,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a5" class="spool-select" name="a5">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a5 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a5 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -401,7 +420,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a6" class="spool-select" name="a6">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a6 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a6 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -411,7 +430,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a7" class="spool-select" name="a7">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a7 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a7 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -421,7 +440,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-a8" class="spool-select" name="a8">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a8 === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.a8 === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -433,7 +452,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-voron" class="spool-select" name="voron">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.voron === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.voron === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -443,7 +462,7 @@ app.get('/', async (req, res) => {
                     <select id="spool-select-prusa" class="spool-select" name="prusa">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.prusa === row.id ? 'selected' : ''}>${row.name}</option>
+                            <option value="${row.id}" data-available-weight="${Math.round(row.weight - row.used)}" ${selection.prusa === row.id ? 'selected' : ''}>[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <div class="weight-info"></div>
@@ -683,7 +702,7 @@ app.get('/add', async (req, res) => {
                 <select id="spool-select-0" name="spool" class="spool-select">
                     <option value="">-- Select a Filament --</option>
                     ${rows.map(row => `
-                        <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">${row.name}</option>
+                        <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">[${row.material}] - ${row.name} (${row.vendor})</option>
                     `).join('')}
                 </select>
                 <input type="text" id="input-0" class="spool-input" placeholder="Enter grams" />
@@ -713,7 +732,7 @@ app.get('/add', async (req, res) => {
                     <select id="spool-select-\${elementIndex}" name="spool" class="spool-select">
                         <option value="">-- Select a Filament --</option>
                         ${rows.map(row => `
-                            <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">${row.name}</option>
+                            <option value="${row.id}" data-used="${row.used}" data-color="${row.color}">[${row.material}] - ${row.name} (${row.vendor})</option>
                         `).join('')}
                     </select>
                     <input type="text" id="input-\${elementIndex}" class="spool-input" placeholder="Enter grams" />
