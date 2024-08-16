@@ -896,7 +896,7 @@ app.get('/add', async (req, res) => {
                 </div>
 
                 <div class="selection-group grey-background" style="border-left: solid;">
-                    <label for="spool-select-a5">A5</label>
+                    <label for="spool-select-a5">B1</label>
                     <select id="spool-select-a5" class="spool-select" name="a5">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
@@ -906,7 +906,7 @@ app.get('/add', async (req, res) => {
                     <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
-                    <label for="spool-select-a6">A6</label>
+                    <label for="spool-select-a6">B2</label>
                     <select id="spool-select-a6" class="spool-select" name="a6">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
@@ -916,7 +916,7 @@ app.get('/add', async (req, res) => {
                     <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
-                    <label for="spool-select-a7">A7</label>
+                    <label for="spool-select-a7">B3</label>
                     <select id="spool-select-a7" class="spool-select" name="a7">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
@@ -926,7 +926,7 @@ app.get('/add', async (req, res) => {
                     <div class="weight-info"></div>
                 </div>
                 <div class="selection-group grey-background">
-                    <label for="spool-select-a8">A8</label>
+                    <label for="spool-select-a8">B4</label>
                     <select id="spool-select-a8" class="spool-select" name="a8">
                         <option value="" data-available-weight="">--- LEER ---</option>
                         ${rows.map(row => `
